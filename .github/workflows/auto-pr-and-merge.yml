@@ -1,0 +1,60 @@
+name: Automatic Pull Request
+
+on:
+  push:
+    branches:
+      - "*"
+      - "!main"
+      - "!master"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Pull Request
+        id: create-pr-step
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: ${{ github.event.head_commit.message }}
+          body: ${{ github.event.head_commit.message }}
+          branch: ${{ github.ref_name }}
+          base: "main"
+          add-paths: "*"
+
+  run-checks:
+    runs-on: ubuntu-latest
+    needs: create-pr
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+      # linting and tests needs to be set up in your project (adjust as necessary)
+      - name: Run Linter
+        run: npx eslint .
+
+      - name: Run Tests
+        run: npm run test
+
+  auto-merge:
+    runs-on: ubuntu-latest
+    needs: [create-pr, run-checks]
+    steps:
+      - name: Auto-Merge the Pull Request
+        uses: owen-6936/auto-merge-action@v1.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
