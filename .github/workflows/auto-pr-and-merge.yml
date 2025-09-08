@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       pr-branch: ${{ steps.extract-branch.outputs.branch }}
+      pr-number: ${{ steps.get-pr.outputs.pr-number }}
     steps:
       - name: Extract Branch Name
         id: extract-branch
@@ -42,7 +43,21 @@ jobs:
       - name: Authenticate GitHub CLI
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
+      - name: Check if PR already exists
+        id: pr-check
+        run: |
+          existing_pr=$(gh pr list --head ${{ steps.extract-branch.outputs.branch }} --json number --jq '.[0].number')
+          if [ -n "$existing_pr" ]; then
+            echo "PR already exists: #$existing_pr"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "No existing PR found"
+            echo "skip=false" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Pull Request
+        if: steps.pr-check.outputs.skip == 'false'
         run: |
           gh pr create \
             --title "chore: automated formatting" \
@@ -50,6 +65,14 @@ jobs:
             --base main \
             --head ${{ steps.extract-branch.outputs.branch }} \
             --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Pull Request Number
+        id: get-pr
+        run: |
+          pr_number=$(gh pr list --head ${{ steps.extract-branch.outputs.branch }} --json number --jq '.[0].number')
+          echo "pr-number=$pr_number" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -85,3 +108,4 @@ jobs:
         uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ needs.create-pr.outputs.pr-number }}
