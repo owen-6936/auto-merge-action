@@ -1,0 +1,22 @@
+name: Test Auto Merge Action
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: ["main"]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  test-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test Auto Merge Action
+        uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
