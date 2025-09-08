@@ -44,7 +44,7 @@ jobs:
         run: npm ci
       # linting and tests needs to be set up in your project (adjust as necessary)
       - name: Run Linter
-        run: echo "No linter configured" # replace with your linter command, e.g., npm run lint
+        run: npm prettier --write . # replace with your linter command, e.g., npm run lint
 
       - name: Run Tests
         run: echo "No tests configured" # replace with your test command, e.g., npm test
