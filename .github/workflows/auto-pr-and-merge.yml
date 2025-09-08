@@ -69,6 +69,7 @@ jobs:
     needs: [create-pr, run-checks]
     steps:
       - name: Auto-Merge the Pull Request
-        uses: owen-6936/auto-merge-action@v1.0.0
+        uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ needs.create-pr.outputs.pr-number }}
