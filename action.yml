@@ -1,0 +1,28 @@
+name: "Owen's Auto Merge Pull Request"
+
+description: "Automatically merges a pull request using the squash merge method when all required status checks have passed."
+author: "owen-6936"
+branding:
+  icon: "git-merge"
+  color: "blue"
+
+inputs:
+  github-token:
+    description: "GitHub token with permissions to merge pull requests."
+    required: true
+    default: "${{ github.token }}"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Merge pull request
+      uses: "actions/github-script@v6"
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const { pull_request } = context.payload;
+          await github.rest.pulls.merge({
+            ...context.repo,
+            pull_number: pull_request.number,
+            merge_method: "squash"
+          });
