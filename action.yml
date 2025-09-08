@@ -1,6 +1,5 @@
 name: "Owen's Auto Merge Pull Request"
-
-description: "Automatically merges a pull request using the squash merge method when all required status checks have passed."
+description: "Automatically merges a pull request using squash when checks pass."
 author: "owen-6936"
 branding:
   icon: "git-merge"
@@ -10,19 +9,31 @@ inputs:
   github-token:
     description: "GitHub token with permissions to merge pull requests."
     required: true
-    default: "${{ github.token }}"
 
 runs:
   using: "composite"
   steps:
     - name: Merge pull request
-      uses: "actions/github-script@v6"
+      uses: actions/github-script@v6
       with:
         github-token: ${{ inputs.github-token }}
         script: |
-          const { pull_request } = context.payload;
+          const branch = context.ref.replace('refs/heads/', '');
+          const { data: prs } = await github.rest.pulls.list({
+            ...context.repo,
+            head: `${context.repo.owner}:${branch}`,
+            state: 'open'
+          });
+
+          if (prs.length === 0) {
+            core.setFailed(`No open pull request found for branch ${branch}`);
+            return;
+          }
+
+          const pr = prs[0];
+
           await github.rest.pulls.merge({
             ...context.repo,
-            pull_number: pull_request.number,
+            pull_number: pr.number,
             merge_method: "squash"
           });

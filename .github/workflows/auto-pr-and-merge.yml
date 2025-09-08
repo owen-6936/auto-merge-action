@@ -3,8 +3,8 @@ name: Automatic Pull Request
 on:
   push:
     branches-ignore:
-      - "main"
-      - "master"
+      - main
+      - master
 
 permissions:
   contents: write
@@ -13,19 +13,34 @@ permissions:
 jobs:
   create-pr:
     runs-on: ubuntu-latest
+    outputs:
+      pr-number: ${{ steps.create-pr-step.outputs.pull-request-number }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Prettier
+        run: npm install prettier
+
+      - name: Format code with Prettier
+        run: npx prettier --write .
 
       - name: Create Pull Request
         id: create-pr-step
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           title: ${{ github.event.head_commit.message }}
           body: ${{ github.event.head_commit.message }}
           branch: ${{ github.ref_name }}
-          base: "main"
+          base: main
           add-paths: "*"
 
   run-checks:
@@ -43,14 +58,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Prettier
-        run: npm run format
-
       - name: Run Linter
-        run: echo "No linter configured" # replace with your linter command, e.g., npm run lint
+        run: echo "No linter configured" # Replace with: npm run lint
 
       - name: Run Tests
-        run: echo "No tests configured" # replace with your test command, e.g., npm test
+        run: echo "No tests configured" # Replace with: npm test
 
   auto-merge:
     runs-on: ubuntu-latest
