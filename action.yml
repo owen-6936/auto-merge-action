@@ -1,6 +1,5 @@
 name: "Owen's Auto Merge Pull Request"
-
-description: "Automatically merges a pull request using the squash merge method when all required status checks have passed."
+description: "Automatically merges a pull request using squash when checks pass."
 author: "owen-6936"
 branding:
   icon: "git-merge"
@@ -10,19 +9,45 @@ inputs:
   github-token:
     description: "GitHub token with permissions to merge pull requests."
     required: true
-    default: "${{ github.token }}"
+
+  pull-request-number:
+    description: "Optional pull request number to merge directly."
+    required: false
 
 runs:
   using: "composite"
   steps:
     - name: Merge pull request
-      uses: "actions/github-script@v6"
+      uses: actions/github-script@v6
       with:
         github-token: ${{ inputs.github-token }}
         script: |
-          const { pull_request } = context.payload;
-          await github.rest.pulls.merge({
+          const branch = context.ref.replace('refs/heads/', '');
+          const { data: prs } = await github.rest.pulls.list({
             ...context.repo,
-            pull_number: pull_request.number,
-            merge_method: "squash"
+            head: `${context.repo.owner}:${branch}`,
+            state: 'open'
           });
+
+          if (prs.length === 0) {
+            core.setFailed(`No open pull request found for branch ${branch}`);
+            return;
+          }
+
+          const pr = prs[0];
+
+          try {
+            await github.rest.pulls.merge({
+              ...context.repo,
+              pull_number: pr.number,
+              merge_method: "squash"
+            });
+            console.log(`✅ Successfully merged PR #${pr.number}`);
+          } catch (error) {
+            if (error.status === 409) {
+              console.log(`⚠️ Merge conflict detected in PR #${pr.number}. Manual resolution required.`);
+               await github.rest.issues.createComment({...context.repo,issue_number: pr.number,body: `⚠️ Merge conflict detected. Git could not apply one or more commits. Please resolve manually.`});
+              return;
+            }
+            throw error;
+          }
