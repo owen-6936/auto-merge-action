@@ -53,6 +53,7 @@ jobs:
           else
             echo "No existing PR found"
             echo "skip=false" >> $GITHUB_OUTPUT
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
