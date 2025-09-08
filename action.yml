@@ -11,7 +11,7 @@ runs:
     - name: Merge pull request
       uses: "actions/github-script@v6"
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ inputs.github-token }}
         script: |
           const { pull_request } = context.payload;
           await github.rest.pulls.merge({
