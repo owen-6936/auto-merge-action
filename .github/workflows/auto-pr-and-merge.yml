@@ -2,10 +2,9 @@ name: Automatic Pull Request
 
 on:
   push:
-    branches:
-      - "*"
-      - "!main"
-      - "!master"
+    branches-ignore:
+      - "main"
+      - "master"
 
 permissions:
   contents: write
