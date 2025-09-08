@@ -22,9 +22,9 @@ name: Automatic Pull Request
 on:
   push:
     branches:
-      - '*'
-      - '!main'
-      - '!master'
+      - "*"
+      - "!main"
+      - "!master"
 
 permissions:
   contents: write
@@ -45,9 +45,9 @@ jobs:
           title: ${{ github.event.head_commit.message }}
           body: ${{ github.event.head_commit.message }}
           branch: ${{ github.ref_name }}
-          base: 'main'
-          add-paths: '*'
-          
+          base: "main"
+          add-paths: "*"
+
   run-checks:
     runs-on: ubuntu-latest
     needs: create-pr
@@ -68,7 +68,7 @@ jobs:
 
       - name: Run Tests
         run: npm run test
-        
+
   auto-merge:
     runs-on: ubuntu-latest
     needs: [create-pr, run-checks]
