@@ -10,6 +10,10 @@ inputs:
     description: "GitHub token with permissions to merge pull requests."
     required: true
 
+  pull-request-number:
+    description: "Optional pull request number to merge directly."
+    required: false
+
 runs:
   using: "composite"
   steps:
