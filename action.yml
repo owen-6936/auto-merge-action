@@ -32,8 +32,17 @@ runs:
 
           const pr = prs[0];
 
-          await github.rest.pulls.merge({
-            ...context.repo,
-            pull_number: pr.number,
-            merge_method: "squash"
-          });
+          try {
+            await github.rest.pulls.merge({
+              ...context.repo,
+              pull_number: pr.number,
+              merge_method: "squash"
+            });
+            console.log(`✅ Successfully merged PR #${pr.number}`);
+          } catch (error) {
+            if (error.status === 409) {
+              console.log(`⚠️ Merge conflict detected in PR #${pr.number}. Manual resolution required.`);
+              return;
+            }
+            throw error;
+          }
