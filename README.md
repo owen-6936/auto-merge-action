@@ -55,7 +55,7 @@ jobs:
     steps:
       - name: Auto Merge
         uses: owen-6936/auto-merge-action@v1.0.0
-````
+```
 
 > **Note:** For this to work, you must enable branch protection rules on your `main` branch and require the `codeql-scan` and `sonarqube-scan` status checks to pass before merging.
 
