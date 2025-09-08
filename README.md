@@ -21,10 +21,9 @@ name: Automatic Pull Request
 
 on:
   push:
-    branches:
-      - "*"
-      - "!main"
-      - "!master"
+    branches-ignore:
+      - main
+      - master
 
 permissions:
   contents: write
@@ -33,20 +32,69 @@ permissions:
 jobs:
   create-pr:
     runs-on: ubuntu-latest
+    outputs:
+      pr-branch: ${{ steps.extract-branch.outputs.branch }}
+      pr-number: ${{ steps.get-pr.outputs.pr-number }}
     steps:
+      - name: Extract Branch Name
+        id: extract-branch
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Prettier
+        run: npm install prettier
+
+      - name: Format code with Prettier
+        run: npx prettier --write .
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh
+
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Check if PR already exists
+        id: pr-check
+        run: |
+          existing_pr=$(gh pr list --head ${{ steps.extract-branch.outputs.branch }} --json number --jq '.[0].number')
+          if [ -n "$existing_pr" ]; then
+            echo "PR already exists: #$existing_pr"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "No existing PR found"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Pull Request
-        id: create-pr-step
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: ${{ github.event.head_commit.message }}
-          body: ${{ github.event.head_commit.message }}
-          branch: ${{ github.ref_name }}
-          base: "main"
-          add-paths: "*"
+        if: steps.pr-check.outputs.skip == 'false'
+        run: |
+          gh pr create \
+            --title "chore: automated formatting" \
+            --body "Automated PR from branch ${{ steps.extract-branch.outputs.branch }}" \
+            --base main \
+            --head ${{ steps.extract-branch.outputs.branch }} \
+            --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Pull Request Number
+        id: get-pr
+        run: |
+          pr_number=$(gh pr list --head ${{ steps.extract-branch.outputs.branch }} --json number --jq '.[0].number')
+          echo "pr-number=$pr_number" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   run-checks:
     runs-on: ubuntu-latest
@@ -64,18 +112,24 @@ jobs:
         run: npm ci
 
       - name: Run Linter
-        run: npx eslint .
+        run: echo "No linter configured" # Replace with: npm run lint
 
       - name: Run Tests
-        run: npm run test
+        run: echo "No tests configured" # Replace with: npm test
 
   auto-merge:
     runs-on: ubuntu-latest
     needs: [create-pr, run-checks]
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Auto-Merge the Pull Request
-        uses: owen-6936/auto-merge-action@v1.0.0
-```
+        uses: owen-6936/auto-merge-action@v1.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ needs.create-pr.outputs.pr-number }}
+````
 
 > **Note:** For this to work, you must enable branch protection rules on your `main` branch and require the `codeql-scan` and `sonarqube-scan` status checks to pass before merging.
 
@@ -86,11 +140,3 @@ This action does not require any inputs. It uses the `GITHUB_TOKEN` from the wor
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
-
-## ❓ Questions?
-
-If you have any questions or need help, feel free to open an issue in the repository.
