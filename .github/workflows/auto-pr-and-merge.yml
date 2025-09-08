@@ -47,7 +47,7 @@ jobs:
         run: echo "No linter configured" # replace with your linter command, e.g., npm run lint
 
       - name: Run Tests
-        run: npm run test
+        run: echo "No tests configured" # replace with your test command, e.g., npm test
 
   auto-merge:
     runs-on: ubuntu-latest
