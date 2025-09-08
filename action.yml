@@ -42,6 +42,7 @@ runs:
           } catch (error) {
             if (error.status === 409) {
               console.log(`⚠️ Merge conflict detected in PR #${pr.number}. Manual resolution required.`);
+               await github.rest.issues.createComment({...context.repo,issue_number: pr.number,body: `⚠️ Merge conflict detected. Git could not apply one or more commits. Please resolve manually.`});
               return;
             }
             throw error;
