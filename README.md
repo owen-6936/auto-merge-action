@@ -125,7 +125,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Auto-Merge the Pull Request
-        uses: ./
+        uses: owen-6936/auto-merge-action@v1.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ needs.create-pr.outputs.pr-number }}
