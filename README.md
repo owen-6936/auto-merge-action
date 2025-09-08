@@ -1,4 +1,4 @@
-# Auto Merge
+# Auto Merge Action
 
 <div align="center">
   <img src="https://img.shields.io/github/v/release/owen-6936/auto-merge-action" alt="Latest Release">
