@@ -1,4 +1,4 @@
-name: "Auto Merge Pull Request"
+name: "Owen's Auto Merge Pull Request"
 description: "Automatically merges a pull request using the squash merge method when all required status checks have passed."
 author: "owen-6936"
 branding:
