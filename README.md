@@ -17,44 +17,66 @@ To use this action, add a new job to your workflow file (e.g., `.github/workflow
 This example shows a full workflow that runs CodeQL and SonarQube first, and then uses the `auto-merge` action to merge the pull request only if those jobs pass.
 
 ```yaml
-name: CI/CD Pipeline
+name: Automatic Pull Request
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: ["main"]
+  push:
+    branches:
+      - '*'
+      - '!main'
+      - '!master'
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  codeql-scan:
-    # Your existing CodeQL job configuration
+  create-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Pull Request
+        id: create-pr-step
+        uses: peter-evans/create-pull-request@v6
         with:
-          languages: javascript
-      - uses: github/codeql-action/analyze@v3
-
-  sonarqube-scan:
-    # Your existing SonarQube job configuration
-    needs: [codeql-scan]
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: ${{ github.event.head_commit.message }}
+          body: ${{ github.event.head_commit.message }}
+          branch: ${{ github.ref_name }}
+          base: 'main'
+          add-paths: '*'
+          
+  run-checks:
     runs-on: ubuntu-latest
+    needs: create-pr
     steps:
-      - uses: actions/checkout@v4
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@7295e71c9583053f5bf40e9d4068a0c974603ec8
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Linter
+        run: npx eslint .
+
+      - name: Run Tests
+        run: npm run test
+        
   auto-merge:
-    name: Auto Merge PR
-    needs: [codeql-scan, sonarqube-scan]
     runs-on: ubuntu-latest
-    if: success()
+    needs: [create-pr, run-checks]
     steps:
-      - name: Auto Merge
+      - name: Auto-Merge the Pull Request
         uses: owen-6936/auto-merge-action@v1.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 ````
 
 > **Note:** For this to work, you must enable branch protection rules on your `main` branch and require the `codeql-scan` and `sonarqube-scan` status checks to pass before merging.
