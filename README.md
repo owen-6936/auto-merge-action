@@ -66,3 +66,11 @@ This action does not require any inputs. It uses the `GITHUB_TOKEN` from the wor
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+
+## ❓ Questions?
+
+If you have any questions or need help, feel free to open an issue in the repository.
