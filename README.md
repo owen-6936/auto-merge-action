@@ -72,6 +72,7 @@ jobs:
           else
             echo "No existing PR found"
             echo "skip=false" >> $GITHUB_OUTPUT
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -124,7 +125,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Auto-Merge the Pull Request
-        uses: ./.github/actions/auto-merge
+        uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ needs.create-pr.outputs.pr-number }}
