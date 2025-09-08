@@ -5,6 +5,12 @@ branding:
   icon: "git-merge"
   color: "blue"
 
+inputs:
+  github-token:
+    description: "GitHub token with permissions to merge pull requests."
+    required: true
+    default: "${{ github.token }}"
+
 runs:
   using: "composite"
   steps:

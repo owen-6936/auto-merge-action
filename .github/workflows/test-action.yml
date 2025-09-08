@@ -17,5 +17,5 @@ jobs:
 
       - name: Test Auto Merge Action
         uses: ./
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
