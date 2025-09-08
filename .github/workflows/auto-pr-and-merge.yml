@@ -39,7 +39,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           title: ${{ github.event.head_commit.message }}
           body: ${{ github.event.head_commit.message }}
-          branch: ${{ github.ref_name }}
+          branch: auto-pr/${{ github.ref_name }}
           base: main
           add-paths: "*"
 
