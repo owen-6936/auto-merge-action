@@ -5,18 +5,13 @@ branding:
   icon: "git-merge"
   color: "blue"
 
-inputs:
-  github-token:
-    description: "GitHub token with permissions to merge pull requests."
-    required: true
-
 runs:
   using: "composite"
   steps:
     - name: Merge pull request
       uses: "actions/github-script@v6"
       with:
-        github-token: ${{ inputs.github-token }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const { pull_request } = context.payload;
           await github.rest.pulls.merge({
