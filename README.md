@@ -2,7 +2,7 @@
 
 <div align="center">
   <img src="https://img.shields.io/github/v/release/owen-6936/auto-merge-action" alt="Latest Release">
-  <img src="https://img.shields.io/github/actions/workflow/status/owen-6936/auto-merge-action/test-action.yml" alt="Build Status">
+  <img src="https://img.shields.io/github/actions/workflow/status/owen-6936/auto-merge-action/auto-pr-and-merge.yml" alt="Build Status">
   <img src="https://img.shields.io/github/license/owen-6936/auto-merge-action" alt="License">
 </div>
 
