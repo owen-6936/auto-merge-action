@@ -44,7 +44,7 @@ jobs:
         run: npm ci
 
       - name: Run Prettier
-        run: npm run lint -- --fix
+        run: npm run format
 
       - name: Run Linter
         run: echo "No linter configured" # replace with your linter command, e.g., npm run lint
